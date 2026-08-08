@@ -1,0 +1,38 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install System Dependencies & Buildozer
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            python3-pip build-essential libffi-dev libssl-dev \
+            ccache clang openjdk-17-jdk ffmpeg autoconf libtool \
+            pkg-config zlib1g-dev libncurses-dev cmake
+          pip install --upgrade pip buildozer "cython<3"
+
+      - name: Build APK
+        run: |
+          yes | buildozer -v android debug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: voice-changer-apk
+          path: bin/*.apk
